@@ -2,6 +2,69 @@
 title: Meet Kotlin
 categories: "技术"
 ---
+
+### Kotlin的几个特性
+#### 扩展函数
+#### 尾随闭包
+当最后一个参数是一个方法或者闭包，可以把方法和闭包提到括号外面。
+#### 标准函数
+* with
+* apply
+* run
+* let
+
+#### data class
+参数中可定义成员变量、可选参数、命名参数等
+
+#### apply plugin: 'kotlin-android-extensions'
+直接使用id作为view对象，无需findviewbyid
+#### 简化lambda表达式
+
+```
+view.setOnClickListener {
+             ....
+        }
+```
+
+##### 配合RxJava
+
+
+```
+Observable.create(ObservableOnSubscribe<Long>{
+    Log.e(TAG, "发射 线程为：${Thread.currentThread().name} ")
+    it.onNext(12L)
+})
+    .filter {
+        Log.e(TAG, "filter 线程为：${Thread.currentThread().name} $it ")
+        return@filter it > 10
+    }
+    .subscribeOn(Schedulers.io())
+    .map(Function<Long, String> {
+        Log.e(TAG, "map 线程为：${Thread.currentThread().name} $it ")
+        return@Function it.toString()
+    })
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe {
+        Log.e(TAG, "处理 线程为：${Thread.currentThread().name} $it ")
+    }
+
+```
+
+#### 空安全
+* `？`
+* `！！`
+
+#### 延迟初始化
+* `lateinit` 用于修饰`var` 如果不初始化 会报异常
+* `by laze{}` 用于修饰`val` 变量 在第一次调用的时候会执行其中代码，并返回一个值，之后再调用都只会返回这个值
+
+#### 委托属性
+get{} / set{}
+
+<hr>
+**详细笔记：**
+
+
 1. 函数参数可以添加默认值，这样可以不穿这个参数，相当于是重载的一种方式
 2. 如果没有任何指定，类的属性会默认的使用getter和setter方法，当然也可以自定义setter方法与getter方法， 
 <!--more-->
@@ -197,8 +260,4 @@ val t2 = TypedClass<Int>(25)
 如果是一个null，则不能推断出他的类型，所以必须要加上？  
 函数中也可以使用泛型  
 
-### 变体
 
-
-
-s

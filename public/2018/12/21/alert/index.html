@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Alert弹窗 的一种解决方案需求：在屏幕的最上方弹出一个横条Alert（警告框） 居于StateBar（状态栏）之下 初始的解决方案是直接修改系统的Toast，可以通过反射字段来达到Toast可以交互的目的。但是在Android8.0以上的手机，Toast 的Animation被固定为了淡入淡出，不可以是上滑下滑的动画效果，所以PASS。   Android上的Alert（警告）弹窗，本质上就是">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android上的弹窗及其层级关系协调">
+<meta property="og:url" content="https://o0o0oo00.github.io/2018/12/21/alert/index.html">
+<meta property="og:site_name" content="Zhaocy">
+<meta property="og:description" content="Alert弹窗 的一种解决方案需求：在屏幕的最上方弹出一个横条Alert（警告框） 居于StateBar（状态栏）之下 初始的解决方案是直接修改系统的Toast，可以通过反射字段来达到Toast可以交互的目的。但是在Android8.0以上的手机，Toast 的Animation被固定为了淡入淡出，不可以是上滑下滑的动画效果，所以PASS。   Android上的Alert（警告）弹窗，本质上就是">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-12-21T07:27:50.227Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android上的弹窗及其层级关系协调">
+<meta name="twitter:description" content="Alert弹窗 的一种解决方案需求：在屏幕的最上方弹出一个横条Alert（警告框） 居于StateBar（状态栏）之下 初始的解决方案是直接修改系统的Toast，可以通过反射字段来达到Toast可以交互的目的。但是在Android8.0以上的手机，Toast 的Animation被固定为了淡入淡出，不可以是上滑下滑的动画效果，所以PASS。   Android上的Alert（警告）弹窗，本质上就是">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://o0o0oo00.github.io/2018/12/21/alert/"/>
+
+
+
+
+
+  <title>Android上的弹窗及其层级关系协调 | Zhaocy</title>
+  
+
+
+
+
+
+
+
+
+</head>
+<!--动态标题-->
+<script type="text/javascript" src="/js/src/dytitle.js"></script>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+<a href="https://github.com/o0o0oo00" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#12CD6F; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Zhaocy</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">普通的大帅比而已◕‿‿◕｡</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-留言板">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            留言板
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-友情链接">
+          <a href="/friends/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            友情链接
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://o0o0oo00.github.io/2018/12/21/alert/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Zhaocy">
+      <meta itemprop="description" content="积极向上">
+      <meta itemprop="image" content="/images/header.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zhaocy">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Android上的弹窗及其层级关系协调</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-21T15:25:19+08:00">
+                2018-12-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/技术/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1.2k字
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  4分钟
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Alert弹窗-的一种解决方案"><a href="#Alert弹窗-的一种解决方案" class="headerlink" title="Alert弹窗 的一种解决方案"></a>Alert弹窗 的一种解决方案</h2><p>需求：在屏幕的最上方弹出一个横条Alert（警告框） 居于StateBar（状态栏）之下</p>
+<p>初始的解决方案是直接修改系统的Toast，可以通过反射字段来达到Toast可以交互的目的。但是在Android8.0以上的手机，Toast 的Animation被固定为了淡入淡出，不可以是上滑下滑的动画效果，所以PASS。  </p>
+<p>Android上的<strong>Alert</strong>（警告）弹窗，<strong>本质上</strong>就是一个<strong>View</strong>。 既然是一个View那么我们完全可以自定义与它的交互效果。  </p>
+<p>下面说几种我想到的解决方案<br><a id="more"></a></p>
+<h3 id="1-普通Alerta"><a href="#1-普通Alerta" class="headerlink" title="1. 普通Alerta"></a>1. 普通Alerta</h3><p>此时只有Activity一个Window，所以不存在层级之间的覆盖关系。<br>直接在<strong>Activity的DecorView上添加AlertView</strong></p>
+<h3 id="2-Activity中存在Dialog的时候"><a href="#2-Activity中存在Dialog的时候" class="headerlink" title="2. Activity中存在Dialog的时候"></a>2. Activity中存在Dialog的时候</h3><p>如果用上面的方法的话，会出现一个问题，Dialog的阴影把我们的Alert弹窗覆盖上了，针对这个问题我们分析一下   </p>
+<p>由于Dialog所属的Window层级为System级别，所以显示优先级高于Activity的Window层级Application</p>
+<h3 id="3-直男解决办法"><a href="#3-直男解决办法" class="headerlink" title="3. 直男解决办法"></a>3. 直男解决办法</h3><p>经过观察发现，可以通过<code>dialog.window.decorView</code>来获取到dialog的DecorView，那么我们是不是可以将我们的AlertView添加到这个decorView之上呢？<br>事实证明是可以的，不过Dialog的Window大小需要调整，此时就遇到了另一个问题。如何将Dialog全屏，以便于Alert可以显示在屏幕的最上方。</p>
+<p>下面粘贴了关键代码（详见<code>BaseFullScreenDialog</code>） + XML布局 双match_parent</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">window?.requestFeature(Window.FEATURE_NO_TITLE)</span><br><span class="line">window?.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT)</span><br><span class="line">if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.LOLLIPOP) &#123;</span><br><span class="line">    window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">dialog = newDialog()// 创建出dialog对象</span><br><span class="line">dialog.setContentView(view, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))</span><br><span class="line">dialog.window.setBackgroundDrawableResource(android.R.color.transparent)</span><br></pre></td></tr></table></figure>
+<p>这样Dialog全屏的时候我们的Alert果然就显示在了屏幕的最上方！</p>
+<p>不过 <strong>又双叒叕</strong> 引申出另一个问题，如果Dialog中存在输入框，需要弹出输入法，我们知道，默认的dialog在输入法弹出的时候会自动被推上去一段距离，可是我们的dialog已经全屏了啊，此时我又写了一个通用扩展方法<code>dialog.pushDialogAboveSoftInput(root, content)</code>其中计算了输入法高度以及NavigationBar高度，来将Dialog xml布局中的<strong>内容view</strong>手动的推上去一段距离。这才勉强算是完成了需求。擦汗…… </p>
+<p>又双叒叕引申出一些关于NavigationBar的坑就不太好处理了</p>
+<h3 id="4-奇技淫巧解决办法"><a href="#4-奇技淫巧解决办法" class="headerlink" title="4 奇技淫巧解决办法"></a>4 奇技淫巧解决办法</h3><p>我们回归问题的原始，又回到最初的起点……   </p>
+<p>是因为dialog的阴影挡住了我们的Alert所以才要将Alert添加到Dialog的Window上去。那么我们可不可以将Dialog的阴影去掉，换成改变Activity的透明度。岂不是绕过了上面的所有问题。☆´∀｀☆</p>
+<p>首先应该设置dialog弹出时候背景不变黑</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dialog.window.setDimAmount(0F)</span><br></pre></td></tr></table></figure>
+<p>分别在dialog的show 和 dismiss方法中去改变Activity的透明度。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">// 黑暗 0.0F ~ 1.0F 透明</span><br><span class="line">fun Context.setBackgroundAlpha(alpha: Float) &#123;</span><br><span class="line">    val act = this as? Activity ?: return</span><br><span class="line">    val attributes = act.window.attributes</span><br><span class="line">    attributes.alpha = alpha</span><br><span class="line">    act.window.attributes = attributes</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样就把问题控制在了AlertView的层级上了，只需要配合WindowManager，就可以实现Alert不会被背景阴影挡住了。</p>
+<h3 id="5-WindowManager-设置Alert层级"><a href="#5-WindowManager-设置Alert层级" class="headerlink" title="5. WindowManager 设置Alert层级"></a>5. WindowManager 设置Alert层级</h3><p>(╥﹏╥…) </p>
+<p>我们知道Window的显示是有层级顺序的，层级高的覆盖在层级低的Window之上。<br>Activity的层级为 <code>TYPE_APPLICATION</code><br>PopupWindow的层级为<code>TYPE_APPLICATION_PANEL</code><br>而我们只需要添加一个层级为<code>TYPE_APPLICATION_SUB_PANEL</code>的View到Window上面即可</p>
+<blockquote>
+<p>These windows are displayed on top their attached window and any{@link #TYPE_APPLICATION_PANEL} panels.</p>
+</blockquote>
+<p>关于层级顺序详见SDK WindowManager.java</p>
+<p><strong>注!!!</strong><br>使用WindowManager如果是在<strong>层级为2000<code>FIRST_SYSTEM_WINDOW</code></strong>以下的是<strong>不需要</strong>申请弹窗权限的。</p>
+<p>而这种创建出来的Window是依附于Activity的，如果界面被销毁，或者还没有初始化就去使用WindowManager来<code>addView</code>或者<code>removeView</code>会报异常<code>view not attached to window</code></p>
+<p>针对这个问题，做如下控制</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">if ((act as? Activity)?.isFinishing == true) &#123;</span><br><span class="line">    return</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">windowManager.addView(root, layoutParams)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Handler().postDelayed(&#123;</span><br><span class="line">    if (root.isAttachedToWindow &amp;&amp; act?.isFinishing != true) &#123;</span><br><span class="line">        windowManager.removeView(root)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;, DURATION_ANIM)</span><br></pre></td></tr></table></figure>
+<p>以及关联Application 的 <code>registerActivityLifecycleCallbacks</code>生命周期</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">override fun onActivityDestroyed(activity: Activity?) &#123;</span><br><span class="line">    if (root.isAttachedToWindow) &#123;</span><br><span class="line">        windowManager.removeView(root)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="6-特殊问题"><a href="#6-特殊问题" class="headerlink" title="6 特殊问题"></a>6 特殊问题</h3><p>在one plus 的 9.0 系统上面 windowManager添加顶部Alert会<strong>被statebar遮挡一部分</strong>  </p>
+<p>解决办法：给WindowManager.LayoutParams添加如下FLAG</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or // 不获取焦点，以便于在弹出的时候 下层界面仍然可以进行操作</span><br><span class="line">        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or</span><br><span class="line">        WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR // 确保你的内容不会被装饰物(如状态栏)掩盖.</span><br></pre></td></tr></table></figure>
+<h3 id="干脆Dialog都不用了直接用PopupWindow"><a href="#干脆Dialog都不用了直接用PopupWindow" class="headerlink" title="干脆Dialog都不用了直接用PopupWindow"></a>干脆Dialog都不用了直接用PopupWindow</h3><p>我们知道popWindow是与Activity共用同一个Window的，这一点上来讲，非常好控制，配合WindowManager 完全可以实现需求。</p>
+<p><a href="https://github.com/o0o0oo00/NewToast" target="_blank" rel="noopener">代码</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+    <div>
+  
+    <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">------------- END -------------</div>
+    
+</div>
+  
+    </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/18/decoration/" rel="next" title="RecyclerView.ItemDecoration() 的用法与技巧">
+                <i class="fa fa-chevron-left"></i> RecyclerView.ItemDecoration() 的用法与技巧
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/01/03/AndroidProblem/" rel="prev" title="Android疑难问题总结">
+                Android疑难问题总结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div id="gitalk-container">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/header.png"
+                alt="Zhaocy" />
+            
+              <p class="site-author-name" itemprop="name">Zhaocy</p>
+              <p class="site-description motion-element" itemprop="description">积极向上</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/o0o0oo00" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:zcypro@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Alert弹窗-的一种解决方案"><span class="nav-number">1.</span> <span class="nav-text">Alert弹窗 的一种解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-普通Alerta"><span class="nav-number">1.1.</span> <span class="nav-text">1. 普通Alerta</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Activity中存在Dialog的时候"><span class="nav-number">1.2.</span> <span class="nav-text">2. Activity中存在Dialog的时候</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-直男解决办法"><span class="nav-number">1.3.</span> <span class="nav-text">3. 直男解决办法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-奇技淫巧解决办法"><span class="nav-number">1.4.</span> <span class="nav-text">4 奇技淫巧解决办法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-WindowManager-设置Alert层级"><span class="nav-number">1.5.</span> <span class="nav-text">5. WindowManager 设置Alert层级</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-特殊问题"><span class="nav-number">1.6.</span> <span class="nav-text">6 特殊问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#干脆Dialog都不用了直接用PopupWindow"><span class="nav-number">1.7.</span> <span class="nav-text">干脆Dialog都不用了直接用PopupWindow</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; 2018 &mdash; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhaocy</span>
+
+  
+</div>
+
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+<br/>
+<span id="timeDate">载入天数...</span><span id="times">载入时分秒...</span>
+<script>
+    var now = new Date(); 
+    function createtime() { 
+        var grt= new Date("09/17/2018 00:00:00");//此处修改你的建站时间或者网站上线时间 
+        now.setTime(now.getTime()+250); 
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days); 
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours); 
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum); 
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;} 
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum); 
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;} 
+        document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 "; 
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒"; 
+    } 
+setInterval("createtime()",250);
+</script>
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'c42a8b4cc80b306bffbb',
+          clientSecret: 'd3005e3cad0fe1137b5ea45b29d15121e2c6accf',
+          repo: 'comment',
+          owner: 'o0o0oo00',
+          admin: ['o0o0oo00'],
+          id: location.pathname,
+          labels: 'gitalk'.split(',').filter(l => l),
+          perPage: 15,
+          pagerDirection: 'last',
+          createIssueManually: true,
+          distractionFreeMode: false
+        })
+
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?0c58a1486de42ac6cc1c59c7d98ae887"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/hibiki.model.json"},"display":{"position":"right","width":75,"height":180},"mobile":{"show":true,"scale":0.5},"log":false});</script></body>
+</html>

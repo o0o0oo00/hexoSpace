@@ -8,7 +8,7 @@ date: 2018-10-10 19:01:42
 
 
 
-* [Healejean的梦想博客](http://blog.healerjean.top/)
+* [Healejean的梦想博客](http://blog.healerjean.com/)
 
 ### 欢迎互换友链，敬请留言，!~
 
