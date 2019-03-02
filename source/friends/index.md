@@ -1,7 +1,8 @@
 ---
 title:  好基友s
 date: 2018-10-10 19:01:42
-
+type: "friends"
+layout: "friends"
 ---
 
 <hr>

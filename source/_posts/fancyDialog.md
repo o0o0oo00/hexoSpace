@@ -1,8 +1,10 @@
 ---
 title: DSL风格代替Builder模式 fancyDialog
 date: 2019-01-08 17:47:15
-tags: 技术
+tags: alert
 category: 技术
+top : true
+
 ---
 
 # FancyDialog

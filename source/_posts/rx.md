@@ -2,6 +2,7 @@
 title: RxJava - 异步
 date: 2018-10-15 17:27:52
 categories: 技术
+tag : 技术
 ---
 # RxJava - 异步
 
@@ -14,6 +15,7 @@ Observable<String> observable = Observable.create(new Observable.OnSubscribe<Str
 public void call(Subscriber<? super String> subscriber) {}
 });
 ```
+我们可以看到，call方法的参数是是一个观察者，也就是持有**观察者**的引用，**被观察者**做了一些操作以后，通过`subscriber.onNext/onComplete` 来实现**响应式**
 <!--more-->
 ### Subscriber/Observer(观察者)的创建
 
@@ -56,7 +58,7 @@ System.out.println("observer"+s);
 ```
 ### 观察者响应被观察者
 我们知道[观察者模式](https://o0o0oo00.github.io/2018/10/09/Observer/#more)，是**被观察者持有观察者**的引用，进而遍历所有观察者，调用（通知）其方法来达到响应的目的。
-所以我们看RxJava中的关联方式是通过**被观察者订阅被观察者**observable.subscribe(observer/subscriber)来实现的。这个地方可能与概念有些不贴切，因为概念是观察者要响应的是被观察者，所以这里通过**被观察者订阅被观察者**来达到**观察者响应被观察者**的目的
+所以我们看RxJava中的关联方式是通过**被观察者订阅观察者**observable.subscribe(observer/subscriber)来实现的。这个地方可能与概念有些不贴切，因为概念是观察者要响应的是被观察者，所以这里通过**被观察者订阅观察者**来达到**观察者响应被观察者**的目的
 
 1. 创建被观察者`Observable`与观察者`Observer`对象
 2. 观察者订阅被观察者，实际是**观察者**当做参数传入**被观察者** `observable.subscribe(observer);`

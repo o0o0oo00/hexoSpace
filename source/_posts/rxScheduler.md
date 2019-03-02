@@ -2,6 +2,7 @@
 title: RxJava2 线程调度
 date: 2018-10-22 16:08:04
 categories: 技术
+tag: kotlin
 ---
 ### RxJava2 线程调度
 既然是异步就要涉及到线程控制  

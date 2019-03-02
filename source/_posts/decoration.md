@@ -2,7 +2,7 @@
 title: RecyclerView.ItemDecoration() 的用法与技巧
 date: 2018-12-18 18:06:32
 category: 技术
-tags:
+tags: android
 ---
 ## ItemDecoration
 

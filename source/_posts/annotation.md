@@ -2,6 +2,8 @@
 title: 注解知识简述
 date: 2018-10-10 16:22:24
 categories: 技术
+tag: android
+
 ---
 ### 注解知识点
 #### 概念

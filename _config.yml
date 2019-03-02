@@ -5,10 +5,10 @@
 # Site
 title: Zhaocy
 subtitle: 普通的大帅比而已◕‿‿◕｡
-description: Android 技术 个人博客
+description: 四海翻腾云水怒，五洲震荡风雷激
 keywords: 
 author: Zhaocy
-language: zh-Hans
+language: zh-CN
 timezone:
 
 # URL
@@ -39,10 +39,17 @@ post_asset_folder: false
 relative_link: false
 future: true
 highlight:
-  enable: true
+  enable: false
   line_number: true
   auto_detect: false
   tab_replace:
+
+prism_plugin:
+  mode: 'preprocess'    # realtime/preprocess
+  theme: 'tomorrow'
+  line_number: false    # default false
+  custom_css:
+
 
 # Home page setting
 # path: Root path for your blogs index page. (default = '')
@@ -97,7 +104,9 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: next
+# theme: next
+theme: hexo-theme-matery-1.0.1
+
 
 live2d:
   enable: true

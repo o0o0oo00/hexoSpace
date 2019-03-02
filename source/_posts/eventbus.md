@@ -1,7 +1,7 @@
 ---
 title: Eventbus浅析
 date: 2018-10-25 15:53:05
-tag: technology
+tag: android
 categories: 技术
 ---
 

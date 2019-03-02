@@ -1,6 +1,8 @@
 ---
 title: Meet Kotlin
 categories: "技术"
+tag: kotlin
+
 ---
 
 ### Kotlin的几个特性
